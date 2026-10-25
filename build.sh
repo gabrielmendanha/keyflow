@@ -4,6 +4,7 @@ cd "$(dirname "$0")"
 APP="build/Keyflow Status.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
+iconutil -c icns Resources/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
 swift build --configuration release --build-path build/swiftpm
 cp build/swiftpm/release/KeyflowStatus "$APP/Contents/MacOS/KeyflowStatus"
 ditto Resources/Profiles "$APP/Contents/Resources/Profiles"

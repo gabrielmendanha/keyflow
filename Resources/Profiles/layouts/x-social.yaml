@@ -1,11 +1,11 @@
 layers:
   "1":
-    key1: esc
-    key2: k
-    key3: l
-    key4: dictation
-    key5: j
-    key6: r
-    knob-left: k
+    key1: "."
+    key2: l
+    key3: k
+    key4: "g, h"
+    key5: m
+    key6: j
+    knob-left: shift+tab
     knob-press: enter
-    knob-right: j
+    knob-right: tab

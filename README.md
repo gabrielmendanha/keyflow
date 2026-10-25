@@ -1,7 +1,22 @@
 # Keyflow
 
+![Keyflow app icon](Resources/AppIcon.iconset/icon_128x128@2x.png)
+
 A native macOS menu bar app for the supported macropad. Its compact, arrowless control panel floats
-from the menu bar item and is built with SwiftUI in a borderless `NSPanel`.
+from the menu bar item and is built with SwiftUI in a borderless `NSPanel` using AppKit's semantic
+popover material. Keyflow has no main window; open its panel from the menu bar and use the Quit
+control there to exit.
+
+## Implemented features
+
+- **Macropad status:** Detects USB connection and disconnection and shows the current state in the
+  menu bar panel.
+- **Profile switching:** Select a profile manually, or let Keyflow choose one from the frontmost
+  app and (in Google Chrome) the active tab's website.
+- **Key mappings:** Applies profile mappings to the pad, including key combinations and knob actions.
+- **Bundled profiles:** Includes Claude Code and X Social layouts. Profiles and matching rules are
+  maintained as YAML files in pull requests.
+- **Native menu bar UI:** Provides a compact floating popover and a custom macropad icon for the app.
 
 The app recognizes USB vendor `0x1189` and product `0x8890`. IOKit attach/detach notifications
 update status immediately; a 30-second USB scan reconciles missed events. A compact

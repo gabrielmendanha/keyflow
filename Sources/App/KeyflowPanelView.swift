@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct KeyflowPanelView: View {
@@ -23,7 +24,7 @@ struct KeyflowPanelView: View {
             footer
         }
         .frame(width: 320)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(PopoverMaterialView())
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
@@ -106,5 +107,21 @@ struct KeyflowPanelView: View {
     private var writeError: String? {
         guard let message = status.applicationMessage, message.hasPrefix("Could not") else { return nil }
         return message
+    }
+}
+
+private struct PopoverMaterialView: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .popover
+        view.blendingMode = .behindWindow
+        view.state = .followsWindowActiveState
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {
+        view.material = .popover
+        view.blendingMode = .behindWindow
+        view.state = .followsWindowActiveState
     }
 }

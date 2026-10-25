@@ -17,8 +17,8 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "Keyflow")
-            button.image?.isTemplate = true
+            button.image = KeyflowMenuBarIcon.image
+            button.image?.accessibilityDescription = "Keyflow Macropad"
             button.target = self
             button.action = #selector(togglePanel)
             button.toolTip = "Keyflow — Macropad status"
@@ -114,7 +114,6 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     }
 
     private func updateMenuBarIndicator() {
-        statusItem.button?.contentTintColor = status.isConnected ? .systemGreen : .secondaryLabelColor
         statusItem.button?.toolTip = status.isConnected
             ? "Keyflow — Macropad connected"
             : "Keyflow — Macropad not connected"

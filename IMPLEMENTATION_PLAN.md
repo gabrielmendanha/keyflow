@@ -5,11 +5,11 @@
 Keyflow is a native macOS menu bar app for the supported `1189:8890` macropad. The primary
 interface is a compact floating panel anchored to the menu bar item; it has no main window.
 
-The approved visual direction is a borderless floating `NSPanel` hosted with SwiftUI: a minimal
-header with connection state, selectable profile rows, an automatic-switching control, and a clear
-**Quit Keyflow** action. Do not show a Current Focus section or decorative icons in the panel. Focus
-monitoring remains internal to automatic profile matching. Do not add a settings gear unless a real
-settings feature is later agreed.
+The approved visual direction is a borderless floating `NSPanel` hosted with SwiftUI, using AppKit's
+semantic popover material: a minimal header with connection state, selectable profile rows, an
+automatic-switching control, and a clear **Quit Keyflow** action. Do not show a Current Focus section
+or decorative icons in the panel. Focus monitoring remains internal to automatic profile matching.
+Do not add a settings gear unless a real settings feature is later agreed.
 
 The agreed features are:
 
@@ -146,7 +146,8 @@ supported, and denied/slow permission requests leave app focus switching respons
   setup. Keep all routine use in the menu bar panel.
 - Add launch-at-login only after the core switching behavior is stable and the user can reliably
   pause or quit the app.
-- Add bundle icon, versioning, Developer ID signing/notarization, and a clean install/update path.
+- Add bundle versioning, Developer ID signing/notarization, and a clean install/update path. A
+  custom six-key macropad and knob icon is now included in the app bundle.
 
 **Done when:** the app is usable without a terminal, has understandable recovery states, and can be
 installed and launched as a signed menu bar app.
