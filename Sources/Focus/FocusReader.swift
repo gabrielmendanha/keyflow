@@ -66,7 +66,10 @@ final class FocusReader: ObservableObject {
         refreshWindowTitle()
     }
 
-    func readChromeActiveURL(completion: @escaping (BrowserURLResult) -> Void) {
+    func readChromeActiveURL(
+        requireChromeFrontmost: Bool = true,
+        completion: @escaping (BrowserURLResult) -> Void
+    ) {
         guard !browserLookupInProgress else { return }
         browserLookupInProgress = true
         lookupGeneration += 1
@@ -90,8 +93,10 @@ final class FocusReader: ObservableObject {
             }
             DispatchQueue.main.async {
                 self?.browserLookupInProgress = false
-                guard let self, self.lookupGeneration == generation,
-                      self.current.bundleIdentifier == "com.google.Chrome" else { return }
+                guard let self, self.lookupGeneration == generation else { return }
+                if requireChromeFrontmost && self.current.bundleIdentifier != "com.google.Chrome" {
+                    return
+                }
                 completion(result)
             }
         }

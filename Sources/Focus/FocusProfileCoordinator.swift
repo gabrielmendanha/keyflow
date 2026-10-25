@@ -12,6 +12,7 @@ final class FocusProfileCoordinator: ObservableObject {
     private var observation: AnyCancellable?
     private var pendingChange: DispatchWorkItem?
     private var chromePollTimer: Timer?
+    private var chromePermissionRetryTimer: Timer?
 
     init(focusReader: FocusReader, catalog: ProfileCatalogStore) {
         self.focusReader = focusReader
@@ -23,6 +24,11 @@ final class FocusProfileCoordinator: ObservableObject {
         observation = focusReader.$current
             .removeDuplicates()
             .sink { [weak self] focus in self?.scheduleMatch(for: focus) }
+    }
+
+    deinit {
+        chromePollTimer?.invalidate()
+        chromePermissionRetryTimer?.invalidate()
     }
 
     func setAutomaticSwitchingEnabled(_ enabled: Bool) {
@@ -42,6 +48,7 @@ final class FocusProfileCoordinator: ObservableObject {
     }
 
     private func scheduleMatch(for focus: FocusSnapshot) {
+        updateChromePermissionRetry(for: focus)
         guard automaticSwitchingEnabled else { return }
         pendingChange?.cancel()
         chromePollTimer?.invalidate()
@@ -67,6 +74,7 @@ final class FocusProfileCoordinator: ObservableObject {
                         self.beginChromePolling(for: focus)
                     case .permissionDenied:
                         self.needsChromeAutomationPermission = true
+                        self.updateChromePermissionRetry(for: self.focusReader.current)
                         self.focusReader.publishChromeURL(nil)
                         self.applyMatch(for: self.focusReader.current, suffix: " · Chrome Automation permission needed")
                     case .unavailable:
@@ -105,12 +113,50 @@ final class FocusProfileCoordinator: ObservableObject {
                     self.needsChromeAutomationPermission = true
                     self.chromePollTimer?.invalidate()
                     self.chromePollTimer = nil
+                    self.updateChromePermissionRetry(for: self.focusReader.current)
                     self.applyMatch(for: self.focusReader.current,
                                     suffix: " · Chrome Automation permission needed")
                 case .unavailable:
                     self.needsChromeAutomationPermission = false
                     break
                 }
+            }
+        }
+    }
+
+    private func updateChromePermissionRetry(for focus: FocusSnapshot) {
+        guard needsChromeAutomationPermission,
+              focus.bundleIdentifier == "com.apple.systempreferences" else {
+            chromePermissionRetryTimer?.invalidate()
+            chromePermissionRetryTimer = nil
+            return
+        }
+        guard chromePermissionRetryTimer == nil else { return }
+
+        chromePermissionRetryTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) {
+            [weak self] _ in
+            guard let self,
+                  self.needsChromeAutomationPermission,
+                  self.focusReader.current.bundleIdentifier == "com.apple.systempreferences" else {
+                self?.chromePermissionRetryTimer?.invalidate()
+                self?.chromePermissionRetryTimer = nil
+                return
+            }
+            self.focusReader.readChromeActiveURL(requireChromeFrontmost: false) { [weak self] result in
+                guard let self else { return }
+                guard case .url(let url) = result else { return }
+
+                self.needsChromeAutomationPermission = false
+                self.chromePermissionRetryTimer?.invalidate()
+                self.chromePermissionRetryTimer = nil
+                self.focusReader.publishChromeURL(url)
+
+                guard self.automaticSwitchingEnabled,
+                      self.focusReader.current.bundleIdentifier == "com.google.Chrome" else { return }
+                var snapshot = self.focusReader.current
+                snapshot.activeURL = url
+                self.applyMatch(for: snapshot)
+                self.beginChromePolling(for: self.focusReader.current)
             }
         }
     }
