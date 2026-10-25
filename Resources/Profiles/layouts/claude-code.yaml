@@ -19,3 +19,6 @@ descriptions:
   knob-left: Lower effort
   knob-press: Send / confirm
   knob-right: Raise effort
+icons:
+  knob-left: [brain, arrow.down]
+  knob-right: [arrow.up, brain]

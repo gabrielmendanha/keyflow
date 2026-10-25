@@ -6,7 +6,7 @@ struct CurrentKeysView: View {
     let profileID: String?
     let mappings: [String: String]
     let descriptions: [String: String]
-    let icons: [String: String]
+    let icons: [String: SlotIcon]
 
     @State private var hoveredSlot: String?
     @State private var highlighted = false
@@ -44,7 +44,7 @@ struct CurrentKeysView: View {
 
     private func key(_ number: Int) -> some View {
         let slot = "key\(number)"
-        return KeyGlyph(action: mappings[slot], icon: icons[slot])
+        return KeyGlyph(action: mappings[slot], icon: icons[slot]?.symbols)
             .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
             .overlay(alignment: .topLeading) {
                 Text("\(number)").font(.system(size: 8)).foregroundStyle(.secondary)
@@ -57,7 +57,7 @@ struct CurrentKeysView: View {
     private func knobTurn(_ slot: String, symbol: String, leading: Bool) -> some View {
         HStack(spacing: 6) {
             if leading { turnIcon(symbol) }
-            KeyGlyph(action: mappings[slot], icon: icons[slot])
+            KeyGlyph(action: mappings[slot], icon: icons[slot]?.symbols)
             if !leading { turnIcon(symbol) }
         }
         .padding(.horizontal, 10)
@@ -67,7 +67,7 @@ struct CurrentKeysView: View {
     }
 
     private var knobPress: some View {
-        KeyGlyph(action: mappings["knob-press"], icon: icons["knob-press"])
+        KeyGlyph(action: mappings["knob-press"], icon: icons["knob-press"]?.symbols)
             .frame(width: 40, height: 40)
             .background(keyShape(Circle()))
             .modifier(SlotHover(slot: "knob-press", hoveredSlot: $hoveredSlot))
@@ -115,15 +115,24 @@ private struct SlotHover: ViewModifier {
 
 /// Renders a layout's icon override, or the action with icons or Mac key symbols where one
 /// exists; steps of a sequence are separated by a dim "›" so they don't read as arrow keys.
+/// In a combined icon, arrow and chevron symbols are drawn small, as direction marks.
 private struct KeyGlyph: View {
     let action: String?
-    let icon: String?
+    let icon: [String]?
 
     var body: some View {
         let steps = Self.steps(action)
         HStack(spacing: 2) {
             if let icon, !steps.isEmpty {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium))
+                HStack(spacing: 1) {
+                    ForEach(Array(icon.enumerated()), id: \.offset) { _, symbol in
+                        if icon.count > 1, symbol.hasPrefix("arrow.") || symbol.hasPrefix("chevron.") {
+                            Image(systemName: symbol).font(.system(size: 9, weight: .bold))
+                        } else {
+                            Image(systemName: symbol).font(.system(size: 13, weight: .medium))
+                        }
+                    }
+                }
             } else if steps.isEmpty {
                 Text("—").foregroundStyle(.tertiary)
             } else {

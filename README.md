@@ -53,7 +53,9 @@ Rules match an `app`, window `title`, or browser `site`, and refer to a profile 
 existing macropad action syntax, and the loader rejects unknown fields, slots, layers, or actions.
 An optional `descriptions` mapping gives each slot a short label for what it does in the app; the
 panel shows it when you hover that key. An optional `icons` mapping replaces a slot's key symbols
-with an SF Symbol name (for example `heart` for a like shortcut); unknown symbols are rejected.
+with an SF Symbol name (for example `heart` for a like shortcut), or a list drawn side by side
+(for example `[arrow.up, brain]`, where arrows and chevrons are drawn small as direction marks).
+Unknown symbols are rejected.
 
 ## Build
 

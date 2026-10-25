@@ -40,7 +40,21 @@ struct ProfileLayout: Decodable {
     let led: Int?
     let layers: [String: [String: String]]
     let descriptions: [String: String]?
-    let icons: [String: String]?
+    let icons: [String: SlotIcon]?
+}
+
+/// One SF Symbol, or a list drawn side by side (for example `[arrow.up, brain]`).
+struct SlotIcon: Decodable {
+    let symbols: [String]
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let symbol = try? container.decode(String.self) {
+            symbols = [symbol]
+        } else {
+            symbols = try container.decode([String].self)
+        }
+    }
 }
 
 struct CatalogProfile: Identifiable {
@@ -291,11 +305,12 @@ enum ProfileCatalogLoader {
             if let icons = rawIcons as? [String: Any] {
                 checkKeys(icons, allowed: supportedSlots, context: "\(context).layout.icons", problems: &problems)
                 for (slot, value) in icons {
-                    guard let symbol = value as? String else {
-                        problems.append("\(context).layout.icons.\(slot): icon must be an SF Symbol name")
+                    guard let symbols = value as? [String] ?? (value as? String).map({ [$0] }),
+                          !symbols.isEmpty else {
+                        problems.append("\(context).layout.icons.\(slot): icon must be an SF Symbol name or a list of them")
                         continue
                     }
-                    if NSImage(systemSymbolName: symbol, accessibilityDescription: nil) == nil {
+                    for symbol in symbols where NSImage(systemSymbolName: symbol, accessibilityDescription: nil) == nil {
                         problems.append("\(context).layout.icons.\(slot): unknown SF Symbol \(symbol)")
                     }
                 }
