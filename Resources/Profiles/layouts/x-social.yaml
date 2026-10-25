@@ -1,0 +1,11 @@
+layers:
+  "1":
+    key1: esc
+    key2: k
+    key3: l
+    key4: dictation
+    key5: j
+    key6: r
+    knob-left: k
+    knob-press: enter
+    knob-right: j

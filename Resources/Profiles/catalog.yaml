@@ -1,0 +1,22 @@
+schemaVersion: 1
+profiles:
+  - id: claude-code
+    name: Claude Code
+    layout: layouts/claude-code.yaml
+  - id: x-social
+    name: X Social
+    layout: layouts/x-social.yaml
+rules:
+  - site: x.com
+    profile: x-social
+  - site: twitter.com
+    profile: x-social
+  - app: Orca
+    profile: claude-code
+  - app: Ghostty
+    profile: claude-code
+  - app: iTerm2
+    profile: claude-code
+  - app: com.apple.Terminal
+    profile: claude-code
+settle: 0.5

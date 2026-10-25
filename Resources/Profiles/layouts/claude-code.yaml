@@ -1,0 +1,11 @@
+layers:
+  "1":
+    key1: esc
+    key2: pageup
+    key3: up
+    key4: dictation
+    key5: pagedown
+    key6: down
+    knob-left: opt+p, left
+    knob-press: enter
+    knob-right: opt+p, right
