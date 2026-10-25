@@ -26,7 +26,8 @@ struct KeyflowPanelView: View {
                 Divider().padding(.horizontal, 16)
                 CurrentKeysView(profileID: selectedProfile.id,
                                 mappings: selectedProfile.layout.layers["1"] ?? [:],
-                                descriptions: selectedProfile.layout.descriptions ?? [:])
+                                descriptions: selectedProfile.layout.descriptions ?? [:],
+                                icons: selectedProfile.layout.icons ?? [:])
             }
             if permissionNoticeCount > 0 {
                 Divider().padding(.horizontal, 16)

@@ -19,3 +19,10 @@ descriptions:
   knob-left: Focus the previous item
   knob-press: Enter
   knob-right: Focus the next item
+icons:
+  key1: arrow.clockwise
+  key2: heart
+  key3: chevron.up
+  key4: house
+  key5: speaker.slash
+  key6: chevron.down

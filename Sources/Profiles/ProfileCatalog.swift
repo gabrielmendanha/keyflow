@@ -40,6 +40,7 @@ struct ProfileLayout: Decodable {
     let led: Int?
     let layers: [String: [String: String]]
     let descriptions: [String: String]?
+    let icons: [String: String]?
 }
 
 struct CatalogProfile: Identifiable {
@@ -247,7 +248,7 @@ enum ProfileCatalogLoader {
         guard let root = raw as? [String: Any] else {
             throw ProfileCatalogError(problems: ["expected a mapping with led/layers"])
         }
-        checkKeys(root, allowed: ["led", "layers", "descriptions"], context: "\(context).layout",
+        checkKeys(root, allowed: ["led", "layers", "descriptions", "icons"], context: "\(context).layout",
                   problems: &problems)
         guard let rawLayers = root["layers"] as? [String: Any] else {
             problems.append("\(context).layout.layers: expected a mapping")
@@ -284,6 +285,22 @@ enum ProfileCatalogLoader {
                 }
             } else {
                 problems.append("\(context).layout.descriptions: expected a slot mapping")
+            }
+        }
+        if let rawIcons = root["icons"] {
+            if let icons = rawIcons as? [String: Any] {
+                checkKeys(icons, allowed: supportedSlots, context: "\(context).layout.icons", problems: &problems)
+                for (slot, value) in icons {
+                    guard let symbol = value as? String else {
+                        problems.append("\(context).layout.icons.\(slot): icon must be an SF Symbol name")
+                        continue
+                    }
+                    if NSImage(systemSymbolName: symbol, accessibilityDescription: nil) == nil {
+                        problems.append("\(context).layout.icons.\(slot): unknown SF Symbol \(symbol)")
+                    }
+                }
+            } else {
+                problems.append("\(context).layout.icons: expected a slot mapping")
             }
         }
         if let rawLED = root["led"], let led = rawLED as? Int, !(0...2).contains(led) {
