@@ -35,7 +35,10 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             status: status,
             catalog: catalog,
             focusReader: focusReader,
-            focusCoordinator: focusCoordinator
+            focusCoordinator: focusCoordinator,
+            onPermissionNoticeCountChange: { [weak self] count in
+                self?.resizePanel(forPermissionNoticeCount: count)
+            }
         ) { NSApp.terminate(nil) }
         let controller = NSHostingController(rootView: content)
         panel = NSPanel(
@@ -55,6 +58,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         panel.becomesKeyOnlyIfNeeded = true
         panel.isMovableByWindowBackground = false
         panel.isReleasedWhenClosed = false
+        resizePanel(forPermissionNoticeCount: permissionNoticeCount)
         installOutsideClickMonitor()
 
         monitor = PadMonitor(status: status)
@@ -94,6 +98,24 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         panel.setFrameOrigin(NSPoint(x: x, y: y))
         panel.alphaValue = 1
         panel.orderFrontRegardless()
+    }
+
+    private var permissionNoticeCount: Int {
+        let accessibilityNeeded = focusReader.requiresWindowTitleAccess &&
+            focusReader.needsAccessibilityPermission
+        let chromeNeeded = focusCoordinator.needsChromeAutomationPermission &&
+            focusReader.current.bundleIdentifier == "com.google.Chrome"
+        return (accessibilityNeeded ? 1 : 0) + (chromeNeeded ? 1 : 0)
+    }
+
+    private func resizePanel(forPermissionNoticeCount count: Int) {
+        guard panel != nil else { return }
+        let size = NSSize(width: 320, height: 236 + CGFloat(count) * 72)
+        guard panel.frame.size != size else { return }
+        panel.setContentSize(size)
+        if panel.isVisible, let button = statusItem.button {
+            showPanel(from: button)
+        }
     }
 
     private func installOutsideClickMonitor() {

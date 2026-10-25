@@ -6,24 +6,12 @@ struct KeyflowPanelView: View {
     @ObservedObject var catalog: ProfileCatalogStore
     @ObservedObject var focusReader: FocusReader
     @ObservedObject var focusCoordinator: FocusProfileCoordinator
+    let onPermissionNoticeCountChange: (Int) -> Void
     let quit: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            if focusReader.requiresWindowTitleAccess && focusReader.needsAccessibilityPermission {
-                permissionNotice(
-                    message: "Allow Keyflow to read window titles in Accessibility settings.",
-                    settingsPane: "Privacy_Accessibility"
-                )
-            }
-            if focusCoordinator.needsChromeAutomationPermission &&
-                focusReader.current.bundleIdentifier == "com.google.Chrome" {
-                permissionNotice(
-                    message: "Allow Keyflow to access Google Chrome in Automation settings.",
-                    settingsPane: "Privacy_Automation"
-                )
-            }
             if let error = writeError {
                 Text(error)
                     .font(.system(size: 11, weight: .medium))
@@ -34,12 +22,28 @@ struct KeyflowPanelView: View {
                     .padding(.bottom, 8)
             }
             profilesSection
+            if focusReader.requiresWindowTitleAccess && focusReader.needsAccessibilityPermission {
+                permissionNotice(
+                    title: "Window-title switching needs Accessibility access",
+                    detail: "Allow Keyflow to read the frontmost window’s title.",
+                    settingsPane: "Privacy_Accessibility"
+                )
+            }
+            if focusCoordinator.needsChromeAutomationPermission &&
+                focusReader.current.bundleIdentifier == "com.google.Chrome" {
+                permissionNotice(
+                    title: "Allow Chrome site switching",
+                    detail: "Keyflow needs to read Chrome’s active tab.",
+                    settingsPane: "Privacy_Automation"
+                )
+            }
             Divider().padding(.horizontal, 16)
             footer
         }
         .frame(width: 320)
         .background(PopoverMaterialView())
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .onChange(of: permissionNoticeCount, perform: onPermissionNoticeCountChange)
     }
 
     private var header: some View {
@@ -100,22 +104,37 @@ struct KeyflowPanelView: View {
         .padding(.horizontal, 12).padding(.top, 9).padding(.bottom, 10)
     }
 
-    private func permissionNotice(message: String, settingsPane: String) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(message)
+    private func permissionNotice(title: String, detail: String, settingsPane: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(detail)
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Button("Open Settings") {
-                guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(settingsPane)") else { return }
-                NSWorkspace.shared.open(url)
+            HStack {
+                Spacer()
+                Button("Open Settings") {
+                    guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(settingsPane)") else { return }
+                    NSWorkspace.shared.open(url)
+                }
+                .font(.system(size: 10, weight: .medium))
+                .buttonStyle(.borderless)
             }
-            .font(.system(size: 10, weight: .medium))
-            .buttonStyle(.borderless)
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 10)
+    }
+
+    private var permissionNoticeCount: Int {
+        let accessibilityNeeded = focusReader.requiresWindowTitleAccess &&
+            focusReader.needsAccessibilityPermission
+        let chromeNeeded = focusCoordinator.needsChromeAutomationPermission &&
+            focusReader.current.bundleIdentifier == "com.google.Chrome"
+        return (accessibilityNeeded ? 1 : 0) + (chromeNeeded ? 1 : 0)
     }
 
     private var footer: some View {
