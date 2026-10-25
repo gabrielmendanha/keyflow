@@ -1,0 +1,29 @@
+layers:
+  "1":
+    key1: volume-up
+    key2: c
+    key3: up
+    key4: volume-down
+    key5: m
+    key6: down
+    knob-left: left
+    knob-press: k
+    knob-right: right
+descriptions:
+  key1: Volume up
+  key2: Toggle captions
+  key3: Previous short
+  key4: Volume down
+  key5: Mute the short
+  key6: Next short
+  knob-left: Rewind 5 seconds
+  knob-press: Play / pause
+  knob-right: Forward 5 seconds
+icons:
+  key2: captions.bubble
+  key3: chevron.up
+  key5: speaker.slash
+  key6: chevron.down
+  knob-left: gobackward.5
+  knob-press: playpause
+  knob-right: goforward.5

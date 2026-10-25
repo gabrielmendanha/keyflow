@@ -6,11 +6,16 @@ profiles:
   - id: x-social
     name: X Social
     layout: layouts/x-social.yaml
+  - id: youtube-shorts
+    name: YouTube Shorts
+    layout: layouts/youtube-shorts.yaml
 rules:
   - site: x.com
     profile: x-social
   - site: twitter.com
     profile: x-social
+  - site: youtube.com
+    profile: youtube-shorts
   - app: Orca
     profile: claude-code
   - app: Ghostty
