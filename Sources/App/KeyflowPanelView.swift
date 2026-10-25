@@ -4,7 +4,7 @@ import SwiftUI
 struct KeyflowPanelView: View {
     @ObservedObject var status: DeviceStatus
     @ObservedObject var catalog: ProfileCatalogStore
-    @State private var automationEnabled = true
+    @ObservedObject var focusCoordinator: FocusProfileCoordinator
     let quit: () -> Void
 
     var body: some View {
@@ -88,7 +88,10 @@ struct KeyflowPanelView: View {
 
     private var footer: some View {
         HStack(spacing: 8) {
-            Toggle("Automatic switching", isOn: $automationEnabled)
+            Toggle("Automatic switching", isOn: Binding(
+                get: { focusCoordinator.automaticSwitchingEnabled },
+                set: { focusCoordinator.setAutomaticSwitchingEnabled($0) }
+            ))
                 .toggleStyle(.switch).controlSize(.mini)
                 .font(.system(size: 11, weight: .medium))
             Spacer(minLength: 3)

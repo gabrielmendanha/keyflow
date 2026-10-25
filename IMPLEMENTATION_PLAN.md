@@ -81,16 +81,17 @@ successfully, and manual selection updates the popover. The YAML decoder is pinn
 - Observe frontmost application changes with `NSWorkspace` activation notifications.
 - Match app rules by bundle identifier, with localized app name as a convenient secondary match.
 - Add a configurable settle interval (initial default: 0.5 seconds) before acting on a new focus.
-- Display the detected app, matched profile, and whether the profile was selected automatically or
-  manually.
+- Keep detected-app and matching details internal. The popover shows profile names and their
+  configured matching rules, without a Current Focus section or a Selected label.
 - Keep app matching available without Accessibility or Automation permission.
 
 **Done when:** switching between two configured apps selects the right profile after the settle
 interval, while rapid focus changes do not cause intermediate writes.
 
-**Implementation status:** code and build are complete. Focus notifications, app-name/bundle-ID
-matching, settle cancellation, fallback behavior, and automatic/manual selection labels are wired.
-Interactive app-switch behavior has not been manually verified in this session.
+**Implementation status:** focus notifications, app-name/bundle-ID matching, settle cancellation,
+fallback behavior, and automatic/manual selection are implemented. The popover intentionally keeps
+focus details internal; it shows profile names and matching rules only. Interactive app-switch
+behavior has not been manually verified in this session.
 
 ### 4. Add safe native profile application
 
@@ -113,35 +114,42 @@ writes, changed-slot diffing, persisted last-successful state, and unknown-state
 implemented. The release build succeeded, and a full 35-packet X Social profile write completed on
 the connected macropad. Physical keypress confirmation and partial-write recovery still need checks.
 
-### 5. Add website and optional window-title rules
+### 5. Complete website matching and add optional window-title rules
 
-- Add title matching through macOS Accessibility APIs. Explain why the permission is needed and
-  keep app-level matching active if permission is denied.
-- Add supported-browser tab URL lookup and host-based site rules. Request Automation permission
-  only when the user has a site rule for that browser; app matching must continue if permission is
-  refused.
-- Use per-browser timeouts and backoff so a pending or denied Automation prompt cannot stall focus
-  handling.
-- Surface permission state and a direct path to the relevant macOS Privacy & Security settings.
+- First, connect the Automatic switching control to focus matching so it truly pauses and resumes
+  automatic profile changes. When resumed, reevaluate the current focus after the settle interval.
+- Add window-title matching through macOS Accessibility APIs. Explain the permission requirement
+  and keep app-level matching available if Accessibility permission is denied.
+- Finish Chrome site matching: detect and communicate Automation permission state clearly, and
+  provide a direct path to the relevant macOS Privacy & Security setting. Keep app-level matching
+  available when permission is denied.
+- Add another browser only when its URL lookup behavior and support are defined. Request Automation
+  permission only when a configured site rule needs that browser; a refusal must not stop app rules.
+- Keep browser lookups bounded and ensure slow or denied lookups cannot stall focus handling.
 
-**Implementation status:** Google Chrome active-tab URL lookup and host-based site matching are
-implemented. macOS Automation permission is requested by the operating system when needed;
-denial leaves app rules available and is reflected in the match status. Safari/other browsers,
-window-title matching, and a settings deep link remain pending.
+**Implementation status:** Google Chrome active-tab URL lookup, host matching (including
+subdomains), and one-second URL polling are implemented. The lookup has a two-second timeout.
+macOS requests Automation permission when Chrome site rules need it; denial leaves app-level rules
+available. The Automatic switching control now pauses/resumes focus matching and reapplies the
+current focus after the settle interval when resumed. The permission-needed message exists in
+internal match status but is not shown in the popover. Window-title matching, user-visible
+permission guidance/settings access, and support for additional browsers remain pending. YAML
+accepts title conditions, but the focus matcher does not evaluate them yet.
 
-**Done when:** browser site rules match the URL host (including subdomains) in each browser marked
-supported, and denied/slow permission requests leave app focus switching responsive.
+**Done when:** the Automatic switching control pauses and resumes matching; Chrome site rules match
+hosts and subdomains; title rules work with the required Accessibility permission; any additional
+browser explicitly marked supported matches its site rules; and denied or slow permission/lookups
+leave app-level matching responsive.
 
 ### 6. Finish the menu bar interaction and release
 
-- Implement the approved floating `NSPanel`/SwiftUI design: connection state, installed profile
-  list, and automatic-switching control. Keep focus matching internal; omit the Current Focus
-  section, panel icons, and a popover arrow.
-- Include a visible **Quit Keyflow** action in the panel footer. It terminates the menu bar app;
-  closing the panel alone must not quit the app. Do not show a settings gear without settings.
-- Keep refresh and help secondary to the core status and profile controls.
-- Manual profile selection remains effective across apps with no matching rule. The next focus
-  event that matches an app rule or configured default returns selection to automatic.
+- Keep the approved floating `NSPanel`/SwiftUI panel minimal: a Connected/Not connected badge with
+  red/green status dots, profile rows, the automatic-switching control, and a quit icon. Keep the
+  popover arrowless and omit Current Focus, a Selected label, decorative profile icons, and a
+  settings gear.
+- The quit icon terminates the menu bar app; closing the panel alone must not quit it.
+- Manual profile selection remains effective across apps with no matching rule; a matching app
+  rule or configured default returns selection to automatic when automatic switching is enabled.
 - Provide onboarding for first launch, no connected pad, no valid profiles, and optional permission
   setup. Keep all routine use in the menu bar panel.
 - Add launch-at-login only after the core switching behavior is stable and the user can reliably
@@ -149,7 +157,13 @@ supported, and denied/slow permission requests leave app focus switching respons
 - Add bundle versioning, Developer ID signing/notarization, and a clean install/update path. A
   custom six-key macropad and knob icon is now included in the app bundle.
 
-**Done when:** the app is usable without a terminal, has understandable recovery states, and can be
+**Implementation status:** the minimal floating panel, connection badge, profile rows, native
+popover material, arrowless positioning, quit icon, and bundled app/menu-bar icon are implemented.
+Empty/error profile states and mapping-write errors have basic in-panel messages. First-run
+onboarding, user-facing permission recovery, launch at login, signing/notarization, and a clean
+install/update path remain pending.
+
+**Done when:** the app is usable without a terminal with clear recovery guidance, and it can be
 installed and launched as a signed menu bar app.
 
 ## Cross-cutting verification

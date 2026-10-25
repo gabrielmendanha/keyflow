@@ -31,7 +31,11 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         focusCoordinator.start()
         profileApplication = ProfileApplicationCoordinator(status: status, catalog: catalog)
         profileApplication.start()
-        let content = KeyflowPanelView(status: status, catalog: catalog) { NSApp.terminate(nil) }
+        let content = KeyflowPanelView(
+            status: status,
+            catalog: catalog,
+            focusCoordinator: focusCoordinator
+        ) { NSApp.terminate(nil) }
         let controller = NSHostingController(rootView: content)
         panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 236),

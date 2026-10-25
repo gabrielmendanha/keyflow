@@ -4,6 +4,7 @@ import Foundation
 final class FocusProfileCoordinator: ObservableObject {
     @Published private(set) var statusText = "Waiting for the frontmost app…"
     @Published private(set) var isSettling = false
+    @Published private(set) var automaticSwitchingEnabled = true
 
     private let focusReader: FocusReader
     private let catalog: ProfileCatalogStore
@@ -23,7 +24,24 @@ final class FocusProfileCoordinator: ObservableObject {
             .sink { [weak self] focus in self?.scheduleMatch(for: focus) }
     }
 
+    func setAutomaticSwitchingEnabled(_ enabled: Bool) {
+        guard automaticSwitchingEnabled != enabled else { return }
+        automaticSwitchingEnabled = enabled
+
+        if enabled {
+            scheduleMatch(for: focusReader.current)
+        } else {
+            pendingChange?.cancel()
+            pendingChange = nil
+            chromePollTimer?.invalidate()
+            chromePollTimer = nil
+            isSettling = false
+            statusText = "Automatic switching paused"
+        }
+    }
+
     private func scheduleMatch(for focus: FocusSnapshot) {
+        guard automaticSwitchingEnabled else { return }
         pendingChange?.cancel()
         chromePollTimer?.invalidate()
         chromePollTimer = nil
@@ -36,7 +54,8 @@ final class FocusProfileCoordinator: ObservableObject {
                self.catalog.rules.contains(where: { $0.site != nil }) {
                 self.focusReader.publishChromeURL(nil)
                 self.focusReader.readChromeActiveURL { [weak self] result in
-                    guard let self, self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
+                    guard let self, self.automaticSwitchingEnabled,
+                          self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
                     switch result {
                     case .url(let url):
                         self.focusReader.publishChromeURL(url)
@@ -62,11 +81,14 @@ final class FocusProfileCoordinator: ObservableObject {
     }
 
     private func beginChromePolling(for focus: FocusSnapshot) {
+        guard automaticSwitchingEnabled else { return }
         chromePollTimer?.invalidate()
         chromePollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self, self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
+            guard let self, self.automaticSwitchingEnabled,
+                  self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
             self.focusReader.readChromeActiveURL { [weak self] result in
-                guard let self, self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
+                guard let self, self.automaticSwitchingEnabled,
+                      self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
                 switch result {
                 case .url(let url):
                     guard self.focusReader.currentBrowserURL != url else { return }
@@ -87,6 +109,7 @@ final class FocusProfileCoordinator: ObservableObject {
     }
 
     private func applyMatch(for focus: FocusSnapshot, suffix: String = "") {
+        guard automaticSwitchingEnabled else { return }
         isSettling = false
         if let rule = catalog.rules.first(where: { $0.matchesApp(focus) }),
            catalog.selectAutomatically(profileID: rule.profile) {
