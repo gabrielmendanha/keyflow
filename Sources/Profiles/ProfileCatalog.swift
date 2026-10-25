@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import Yams
@@ -47,10 +48,22 @@ struct CatalogProfile: Identifiable {
     let layout: ProfileLayout
     let rules: [ProfileRule]
 
-    var matchSummary: String {
+    /// Lists app and window-title rules by type; site rules are not listed.
+    var matchSummary: String? {
         guard !rules.isEmpty else { return "Manual selection" }
-        let first = rules[0].summary
-        return rules.count == 1 ? first : "\(first) +\(rules.count - 1) rules"
+        let apps = rules.compactMap(\.app).map(Self.appDisplayName)
+        let titles = rules.filter { $0.app == nil }.compactMap(\.title)
+        var lines: [String] = []
+        if !apps.isEmpty { lines.append("Apps: " + apps.joined(separator: ", ")) }
+        if !titles.isEmpty { lines.append("Titles: " + titles.joined(separator: ", ")) }
+        return lines.isEmpty ? nil : lines.joined(separator: "\n")
+    }
+
+    private static func appDisplayName(_ app: String) -> String {
+        guard app.contains("."),
+              let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app) else { return app }
+        return FileManager.default.displayName(atPath: url.path)
+            .replacingOccurrences(of: ".app", with: "")
     }
 }
 

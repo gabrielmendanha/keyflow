@@ -5,6 +5,7 @@ import SwiftUI
 final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: NSPanel!
+    private var hostingController: NSHostingController<KeyflowPanelView>!
     private var outsideClickMonitor: Any?
     private var status = DeviceStatus()
     private var catalog: ProfileCatalogStore!
@@ -36,11 +37,12 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             catalog: catalog,
             focusReader: focusReader,
             focusCoordinator: focusCoordinator,
-            onPermissionNoticeCountChange: { [weak self] count in
-                self?.resizePanel(forPermissionNoticeCount: count)
+            onPermissionNoticeCountChange: { [weak self] _ in
+                DispatchQueue.main.async { self?.resizePanel() }
             }
         ) { NSApp.terminate(nil) }
         let controller = NSHostingController(rootView: content)
+        hostingController = controller
         panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 236),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -58,7 +60,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         panel.becomesKeyOnlyIfNeeded = true
         panel.isMovableByWindowBackground = false
         panel.isReleasedWhenClosed = false
-        resizePanel(forPermissionNoticeCount: permissionNoticeCount)
+        resizePanel()
         installOutsideClickMonitor()
 
         monitor = PadMonitor(status: status)
@@ -100,16 +102,9 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
     }
 
-    private var permissionNoticeCount: Int {
-        let accessibilityNeeded = focusReader.requiresWindowTitleAccess &&
-            focusReader.needsAccessibilityPermission
-        let chromeNeeded = focusCoordinator.needsChromeAutomationPermission
-        return (accessibilityNeeded ? 1 : 0) + (chromeNeeded ? 1 : 0)
-    }
-
-    private func resizePanel(forPermissionNoticeCount count: Int) {
+    private func resizePanel() {
         guard panel != nil else { return }
-        let size = NSSize(width: 320, height: 236 + CGFloat(count) * 72)
+        let size = NSSize(width: 320, height: ceil(hostingController.view.fittingSize.height))
         guard panel.frame.size != size else { return }
         panel.setContentSize(size)
         if panel.isVisible, let button = statusItem.button {

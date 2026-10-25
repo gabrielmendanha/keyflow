@@ -91,7 +91,10 @@ struct KeyflowPanelView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(profile.name).font(.system(size: 12, weight: .medium))
-                            Text(profile.matchSummary).font(.system(size: 10)).foregroundStyle(.secondary)
+                            if let summary = profile.matchSummary {
+                                Text(summary).font(.system(size: 10)).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }
                         Spacer()
                     }
