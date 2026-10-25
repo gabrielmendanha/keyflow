@@ -51,6 +51,8 @@ The schema version is `1`. Each profile has an `id`, display `name`, and relativ
 Rules match an `app`, window `title`, or browser `site`, and refer to a profile ID. An optional
 `default` chooses the fallback profile; `settle` defaults to 0.5 seconds. Layout actions use the
 existing macropad action syntax, and the loader rejects unknown fields, slots, layers, or actions.
+An optional `descriptions` mapping gives each slot a short label for what it does in the app; the
+panel shows it when you hover that key.
 
 ## Build
 

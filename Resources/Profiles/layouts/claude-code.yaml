@@ -9,3 +9,13 @@ layers:
     knob-left: opt+p, left
     knob-press: enter
     knob-right: opt+p, right
+descriptions:
+  key1: Interrupt Claude / cancel
+  key2: Scroll the conversation up
+  key3: Previous prompt / move up in a menu
+  key4: Dictate a prompt
+  key5: Scroll the conversation down
+  key6: Next prompt / move down in a menu
+  knob-left: Lower effort
+  knob-press: Send / confirm
+  knob-right: Raise effort

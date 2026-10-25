@@ -6,7 +6,7 @@ struct KeyflowPanelView: View {
     @ObservedObject var catalog: ProfileCatalogStore
     @ObservedObject var focusReader: FocusReader
     @ObservedObject var focusCoordinator: FocusProfileCoordinator
-    let onPermissionNoticeCountChange: (Int) -> Void
+    let onContentSizeChange: () -> Void
     let quit: () -> Void
 
     var body: some View {
@@ -22,6 +22,12 @@ struct KeyflowPanelView: View {
                     .padding(.bottom, 8)
             }
             profilesSection
+            if let selectedProfile {
+                Divider().padding(.horizontal, 16)
+                CurrentKeysView(profileID: selectedProfile.id,
+                                mappings: selectedProfile.layout.layers["1"] ?? [:],
+                                descriptions: selectedProfile.layout.descriptions ?? [:])
+            }
             if permissionNoticeCount > 0 {
                 Divider().padding(.horizontal, 16)
             }
@@ -45,7 +51,8 @@ struct KeyflowPanelView: View {
         .frame(width: 320)
         .background(PopoverMaterialView())
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .onChange(of: permissionNoticeCount, perform: onPermissionNoticeCountChange)
+        .onChange(of: permissionNoticeCount) { _ in onContentSizeChange() }
+        .onChange(of: selectedProfile == nil) { _ in onContentSizeChange() }
     }
 
     private var header: some View {
@@ -160,6 +167,10 @@ struct KeyflowPanelView: View {
             .help("Quit Keyflow")
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
+    }
+
+    private var selectedProfile: CatalogProfile? {
+        catalog.profiles.first { $0.id == catalog.selectedProfileID }
     }
 
     private var writeError: String? {

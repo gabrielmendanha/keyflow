@@ -37,7 +37,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             catalog: catalog,
             focusReader: focusReader,
             focusCoordinator: focusCoordinator,
-            onPermissionNoticeCountChange: { [weak self] _ in
+            onContentSizeChange: { [weak self] in
                 DispatchQueue.main.async { self?.resizePanel() }
             }
         ) { NSApp.terminate(nil) }

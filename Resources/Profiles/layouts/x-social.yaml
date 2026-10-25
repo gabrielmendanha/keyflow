@@ -9,3 +9,13 @@ layers:
     knob-left: shift+tab
     knob-press: enter
     knob-right: tab
+descriptions:
+  key1: Refresh the timeline
+  key2: Like the post
+  key3: Previous post
+  key4: Return to Home
+  key5: Mute the selected video
+  key6: Next post
+  knob-left: Focus the previous item
+  knob-press: Enter
+  knob-right: Focus the next item

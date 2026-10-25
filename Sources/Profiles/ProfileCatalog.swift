@@ -39,6 +39,7 @@ struct ProfileRule: Decodable {
 struct ProfileLayout: Decodable {
     let led: Int?
     let layers: [String: [String: String]]
+    let descriptions: [String: String]?
 }
 
 struct CatalogProfile: Identifiable {
@@ -246,7 +247,8 @@ enum ProfileCatalogLoader {
         guard let root = raw as? [String: Any] else {
             throw ProfileCatalogError(problems: ["expected a mapping with led/layers"])
         }
-        checkKeys(root, allowed: ["led", "layers"], context: "\(context).layout", problems: &problems)
+        checkKeys(root, allowed: ["led", "layers", "descriptions"], context: "\(context).layout",
+                  problems: &problems)
         guard let rawLayers = root["layers"] as? [String: Any] else {
             problems.append("\(context).layout.layers: expected a mapping")
             throw ProfileCatalogError(problems: ["invalid layers mapping"])
@@ -271,6 +273,17 @@ enum ProfileCatalogLoader {
                 if let issue = ActionSyntax.validate(action) {
                     problems.append("\(context).layout.layers.\(layer).\(slot): \(issue)")
                 }
+            }
+        }
+        if let rawDescriptions = root["descriptions"] {
+            if let descriptions = rawDescriptions as? [String: Any] {
+                checkKeys(descriptions, allowed: supportedSlots, context: "\(context).layout.descriptions",
+                          problems: &problems)
+                for (slot, value) in descriptions where !(value is String) {
+                    problems.append("\(context).layout.descriptions.\(slot): description must be a string")
+                }
+            } else {
+                problems.append("\(context).layout.descriptions: expected a slot mapping")
             }
         }
         if let rawLED = root["led"], let led = rawLED as? Int, !(0...2).contains(led) {
