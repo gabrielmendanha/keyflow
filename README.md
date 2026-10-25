@@ -12,7 +12,8 @@ control there to exit.
 - **Macropad status:** Detects USB connection and disconnection and shows the current state in the
   menu bar panel.
 - **Profile switching:** Select a profile manually, or let Keyflow choose one from the frontmost
-  app and (in Google Chrome) the active tab's website.
+  app, window title, or (in Google Chrome) the active tab's website. Pause and resume automatic
+  switching from the popover.
 - **Key mappings:** Applies profile mappings to the pad, including key combinations and knob actions.
 - **Bundled profiles:** Includes Claude Code and X Social layouts. Profiles and matching rules are
   maintained as YAML files in pull requests.
@@ -31,9 +32,12 @@ Social layouts and their app/site rules. The panel lists profiles without exposi
 Focus is still monitored internally for automatic matching. App rules select a matching profile
 after the catalog's settle delay. When Google Chrome is
 frontmost, Keyflow reads its active tab URL and matches configured site hosts, including subdomains.
-The first lookup may prompt for macOS Automation permission. Window-title rules and other browsers
-are not supported yet. Manual selection lasts until focus matches an app rule or configured
-default. The **Quit** action exits the app; closing the panel leaves it running in the menu bar.
+The first lookup may prompt for macOS Automation permission; if access is denied, app matching still
+works and the popover offers a settings shortcut. Window-title rules use macOS Accessibility
+permission and match the focused window title case-insensitively. Other browsers are not supported
+yet. Automatic switching can be paused and resumed from the popover. Manual selection lasts until
+focus matches an app rule or configured default while automatic switching is enabled. The quit icon
+exits the app; closing the panel leaves it running in the menu bar.
 
 Profile contributions should update the catalog and add or edit a layout YAML file in a pull
 request. Validate a catalog before submitting it:

@@ -26,7 +26,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
 
         catalog = ProfileCatalogStore()
         focusReader = FocusReader()
-        focusReader.start()
+        focusReader.start(requiresWindowTitleAccess: catalog.rules.contains { $0.title != nil })
         focusCoordinator = FocusProfileCoordinator(focusReader: focusReader, catalog: catalog)
         focusCoordinator.start()
         profileApplication = ProfileApplicationCoordinator(status: status, catalog: catalog)
@@ -34,6 +34,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         let content = KeyflowPanelView(
             status: status,
             catalog: catalog,
+            focusReader: focusReader,
             focusCoordinator: focusCoordinator
         ) { NSApp.terminate(nil) }
         let controller = NSHostingController(rootView: content)

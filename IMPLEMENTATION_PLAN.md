@@ -127,19 +127,20 @@ the connected macropad. Physical keypress confirmation and partial-write recover
   permission only when a configured site rule needs that browser; a refusal must not stop app rules.
 - Keep browser lookups bounded and ensure slow or denied lookups cannot stall focus handling.
 
-**Implementation status:** Google Chrome active-tab URL lookup, host matching (including
-subdomains), and one-second URL polling are implemented. The lookup has a two-second timeout.
-macOS requests Automation permission when Chrome site rules need it; denial leaves app-level rules
-available. The Automatic switching control now pauses/resumes focus matching and reapplies the
-current focus after the settle interval when resumed. The permission-needed message exists in
-internal match status but is not shown in the popover. Window-title matching, user-visible
-permission guidance/settings access, and support for additional browsers remain pending. YAML
-accepts title conditions, but the focus matcher does not evaluate them yet.
+**Implementation status:** the Automatic switching control pauses/resumes focus matching and
+reapplies the current focus after the settle interval when resumed. Google Chrome active-tab URL
+lookup, host matching (including subdomains), one-second URL polling, and a two-second lookup timeout
+are implemented. A denied Chrome Automation request leaves app matching available and shows a
+contextual notice with a Privacy & Security shortcut. Window-title rules are matched
+case-insensitively against the focused window title through macOS Accessibility APIs; the popover
+shows a contextual permission notice and settings shortcut only when title rules need access.
+Additional browsers remain unsupported and should be added only when their behavior and support are
+defined.
 
 **Done when:** the Automatic switching control pauses and resumes matching; Chrome site rules match
-hosts and subdomains; title rules work with the required Accessibility permission; any additional
-browser explicitly marked supported matches its site rules; and denied or slow permission/lookups
-leave app-level matching responsive.
+hosts and subdomains; title rules work with the required Accessibility permission; and denied or
+slow permission/lookups leave app-level matching responsive. Additional browsers are optional until
+their support is explicitly defined.
 
 ### 6. Finish the menu bar interaction and release
 
@@ -159,8 +160,8 @@ leave app-level matching responsive.
 
 **Implementation status:** the minimal floating panel, connection badge, profile rows, native
 popover material, arrowless positioning, quit icon, and bundled app/menu-bar icon are implemented.
-Empty/error profile states and mapping-write errors have basic in-panel messages. First-run
-onboarding, user-facing permission recovery, launch at login, signing/notarization, and a clean
+Empty/error profile states, mapping-write errors, and contextual permission recovery have basic
+in-panel messages. First-run onboarding, launch at login, signing/notarization, and a clean
 install/update path remain pending.
 
 **Done when:** the app is usable without a terminal with clear recovery guidance, and it can be

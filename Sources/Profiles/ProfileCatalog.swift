@@ -16,11 +16,14 @@ struct ProfileRule: Decodable {
     }
 
     func matchesApp(_ focus: FocusSnapshot) -> Bool {
-        guard title == nil else { return false }
         if let app {
             let expected = app.lowercased()
             guard expected == focus.appName?.lowercased() ||
                     expected == focus.bundleIdentifier?.lowercased() else { return false }
+        }
+        if let title {
+            guard let windowTitle = focus.windowTitle,
+                  windowTitle.range(of: title, options: .caseInsensitive) != nil else { return false }
         }
         if let site {
             guard let activeURL = focus.activeURL,
@@ -28,7 +31,7 @@ struct ProfileRule: Decodable {
             let domain = site.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
             guard host == domain || host.hasSuffix("." + domain) else { return false }
         }
-        return app != nil || site != nil
+        return app != nil || title != nil || site != nil
     }
 }
 

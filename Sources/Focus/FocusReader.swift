@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import Combine
 import Foundation
 
@@ -11,14 +12,18 @@ enum BrowserURLResult {
 final class FocusReader: ObservableObject {
     @Published private(set) var current = FocusSnapshot.unknown
     @Published private(set) var currentBrowserURL: String?
+    @Published private(set) var requiresWindowTitleAccess = false
+    @Published private(set) var needsAccessibilityPermission = false
 
     private let workspace = NSWorkspace.shared
     private var activationObserver: NSObjectProtocol?
     private let browserQueue = DispatchQueue(label: "com.nacifsoftware.keyflow.chrome-url")
     private var lookupGeneration = 0
     private var browserLookupInProgress = false
+    private var windowTitleTimer: Timer?
 
-    func start() {
+    func start(requiresWindowTitleAccess: Bool = false) {
+        self.requiresWindowTitleAccess = requiresWindowTitleAccess
         guard activationObserver == nil else { return }
         activationObserver = workspace.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
@@ -32,12 +37,19 @@ final class FocusReader: ObservableObject {
         if let frontmost = workspace.frontmostApplication {
             update(from: frontmost)
         }
+        guard requiresWindowTitleAccess else { return }
+        checkAccessibilityPermission(prompt: true)
+        windowTitleTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.refreshWindowTitle()
+        }
+        refreshWindowTitle()
     }
 
     deinit {
         if let activationObserver {
             workspace.notificationCenter.removeObserver(activationObserver)
         }
+        windowTitleTimer?.invalidate()
     }
 
     private func update(from application: NSRunningApplication) {
@@ -45,10 +57,13 @@ final class FocusReader: ObservableObject {
         let next = FocusSnapshot(
             appName: application.localizedName,
             bundleIdentifier: application.bundleIdentifier,
-            activeURL: nil
+            processIdentifier: application.processIdentifier,
+            activeURL: nil,
+            windowTitle: nil
         )
         guard next != current else { return }
         current = next
+        refreshWindowTitle()
     }
 
     func readChromeActiveURL(completion: @escaping (BrowserURLResult) -> Void) {
@@ -84,6 +99,57 @@ final class FocusReader: ObservableObject {
 
     func publishChromeURL(_ url: String?) {
         currentBrowserURL = url
+    }
+
+    private func checkAccessibilityPermission(prompt: Bool) {
+        let trusted: Bool
+        if prompt {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            trusted = AXIsProcessTrustedWithOptions(options)
+        } else {
+            trusted = AXIsProcessTrusted()
+        }
+        needsAccessibilityPermission = !trusted
+    }
+
+    private func refreshWindowTitle() {
+        guard requiresWindowTitleAccess else { return }
+        checkAccessibilityPermission(prompt: false)
+        guard !needsAccessibilityPermission else {
+            updateWindowTitle(nil)
+            return
+        }
+        guard let processIdentifier = current.processIdentifier else { return }
+
+        let appElement = AXUIElementCreateApplication(processIdentifier)
+        var focusedWindow: CFTypeRef?
+        let result = AXUIElementCopyAttributeValue(
+            appElement,
+            kAXFocusedWindowAttribute as CFString,
+            &focusedWindow
+        )
+        guard result == .success, let focusedWindow,
+              CFGetTypeID(focusedWindow) == AXUIElementGetTypeID() else {
+            updateWindowTitle(nil)
+            return
+        }
+
+        let windowElement = unsafeBitCast(focusedWindow, to: AXUIElement.self)
+        var titleValue: CFTypeRef?
+        let titleResult = AXUIElementCopyAttributeValue(
+            windowElement,
+            kAXTitleAttribute as CFString,
+            &titleValue
+        )
+        let title = titleResult == .success ? titleValue as? String : nil
+        updateWindowTitle(title)
+    }
+
+    private func updateWindowTitle(_ title: String?) {
+        guard current.windowTitle != title else { return }
+        var snapshot = current
+        snapshot.windowTitle = title
+        current = snapshot
     }
 
 }

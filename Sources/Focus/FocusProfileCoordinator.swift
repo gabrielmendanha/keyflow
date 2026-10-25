@@ -5,6 +5,7 @@ final class FocusProfileCoordinator: ObservableObject {
     @Published private(set) var statusText = "Waiting for the frontmost app…"
     @Published private(set) var isSettling = false
     @Published private(set) var automaticSwitchingEnabled = true
+    @Published private(set) var needsChromeAutomationPermission = false
 
     private let focusReader: FocusReader
     private let catalog: ProfileCatalogStore
@@ -58,15 +59,18 @@ final class FocusProfileCoordinator: ObservableObject {
                           self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
                     switch result {
                     case .url(let url):
+                        self.needsChromeAutomationPermission = false
                         self.focusReader.publishChromeURL(url)
                         var snapshot = self.focusReader.current
                         snapshot.activeURL = url
                         self.applyMatch(for: snapshot)
                         self.beginChromePolling(for: focus)
                     case .permissionDenied:
+                        self.needsChromeAutomationPermission = true
                         self.focusReader.publishChromeURL(nil)
                         self.applyMatch(for: self.focusReader.current, suffix: " · Chrome Automation permission needed")
                     case .unavailable:
+                        self.needsChromeAutomationPermission = false
                         self.focusReader.publishChromeURL(nil)
                         self.applyMatch(for: self.focusReader.current)
                         self.beginChromePolling(for: focus)
@@ -91,17 +95,20 @@ final class FocusProfileCoordinator: ObservableObject {
                       self.focusReader.current.bundleIdentifier == focus.bundleIdentifier else { return }
                 switch result {
                 case .url(let url):
+                    self.needsChromeAutomationPermission = false
                     guard self.focusReader.currentBrowserURL != url else { return }
                     self.focusReader.publishChromeURL(url)
                     var snapshot = self.focusReader.current
                     snapshot.activeURL = url
                     self.applyMatch(for: snapshot)
                 case .permissionDenied:
+                    self.needsChromeAutomationPermission = true
                     self.chromePollTimer?.invalidate()
                     self.chromePollTimer = nil
                     self.applyMatch(for: self.focusReader.current,
                                     suffix: " · Chrome Automation permission needed")
                 case .unavailable:
+                    self.needsChromeAutomationPermission = false
                     break
                 }
             }

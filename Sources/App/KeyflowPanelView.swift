@@ -4,12 +4,26 @@ import SwiftUI
 struct KeyflowPanelView: View {
     @ObservedObject var status: DeviceStatus
     @ObservedObject var catalog: ProfileCatalogStore
+    @ObservedObject var focusReader: FocusReader
     @ObservedObject var focusCoordinator: FocusProfileCoordinator
     let quit: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             header
+            if focusReader.requiresWindowTitleAccess && focusReader.needsAccessibilityPermission {
+                permissionNotice(
+                    message: "Allow Keyflow to read window titles in Accessibility settings.",
+                    settingsPane: "Privacy_Accessibility"
+                )
+            }
+            if focusCoordinator.needsChromeAutomationPermission &&
+                focusReader.current.bundleIdentifier == "com.google.Chrome" {
+                permissionNotice(
+                    message: "Allow Keyflow to access Google Chrome in Automation settings.",
+                    settingsPane: "Privacy_Automation"
+                )
+            }
             if let error = writeError {
                 Text(error)
                     .font(.system(size: 11, weight: .medium))
@@ -84,6 +98,24 @@ struct KeyflowPanelView: View {
             }
         }
         .padding(.horizontal, 12).padding(.top, 9).padding(.bottom, 10)
+    }
+
+    private func permissionNotice(message: String, settingsPane: String) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(message)
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Button("Open Settings") {
+                guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(settingsPane)") else { return }
+                NSWorkspace.shared.open(url)
+            }
+            .font(.system(size: 10, weight: .medium))
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 10)
     }
 
     private var footer: some View {
