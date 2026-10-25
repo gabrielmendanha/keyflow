@@ -22,6 +22,9 @@ struct KeyflowPanelView: View {
                     .padding(.bottom, 8)
             }
             profilesSection
+            if permissionNoticeCount > 0 {
+                Divider().padding(.horizontal, 16)
+            }
             if focusReader.requiresWindowTitleAccess && focusReader.needsAccessibilityPermission {
                 permissionNotice(
                     title: "Window-title switching needs Accessibility access",
@@ -125,6 +128,7 @@ struct KeyflowPanelView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var permissionNoticeCount: Int {
