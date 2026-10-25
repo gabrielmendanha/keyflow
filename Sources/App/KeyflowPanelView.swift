@@ -113,15 +113,14 @@ struct KeyflowPanelView: View {
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Spacer()
-                Button("Open Settings") {
-                    guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(settingsPane)") else { return }
-                    NSWorkspace.shared.open(url)
-                }
-                .font(.system(size: 10, weight: .medium))
-                .buttonStyle(.borderless)
+            Button("Open Settings") {
+                guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(settingsPane)") else { return }
+                NSWorkspace.shared.open(url)
             }
+            .font(.system(size: 11, weight: .medium))
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(.accentColor)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
