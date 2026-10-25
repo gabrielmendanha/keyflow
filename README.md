@@ -1,6 +1,6 @@
 # Keyflow
 
-![Keyflow app icon](Resources/AppIcon.iconset/icon_128x128@2x.png)
+<img src="docs/keyflow-panel.png" alt="Keyflow menu bar panel showing profiles and the current keys" width="366">
 
 A native macOS menu bar app for the supported macropad. Its compact, arrowless control panel floats
 from the menu bar item and is built with SwiftUI in a borderless `NSPanel` using AppKit's semantic
@@ -15,7 +15,7 @@ control there to exit.
   app, window title, or (in Google Chrome) the active tab's website. Pause and resume automatic
   switching from the popover.
 - **Key mappings:** Applies profile mappings to the pad, including key combinations and knob actions.
-- **Bundled profiles:** Includes Claude Code and X Social layouts. Profiles and matching rules are
+- **Bundled profiles:** Includes Claude Code, X Social, and YouTube Shorts layouts. Profiles and matching rules are
   maintained as YAML files in pull requests.
 - **Native menu bar UI:** Provides a compact floating popover and a custom macropad icon for the app.
 
@@ -27,8 +27,8 @@ the bundled, dynamically loaded libusb library. The pad does not provide readbac
 records its last fully successful write and performs a full apply whenever that state becomes
 unknown. See [the protocol notes](docs/macropad-protocol.md) and [the bundled library notice](Vendor/NOTICE.md).
 
-The bundled profile catalog is in `Resources/Profiles/`. It currently defines Claude Code and X
-Social layouts and their app/site rules. The panel lists profiles without exposing current focus.
+The bundled profile catalog is in `Resources/Profiles/`. It currently defines Claude Code, X
+Social, and YouTube Shorts layouts and their app/site rules. The panel lists profiles without exposing current focus.
 Focus is still monitored internally for automatic matching. App rules select a matching profile
 after the catalog's settle delay. When Google Chrome is
 frontmost, Keyflow reads its active tab URL and matches configured site hosts, including subdomains.
