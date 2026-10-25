@@ -103,8 +103,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var permissionNoticeCount: Int {
         let accessibilityNeeded = focusReader.requiresWindowTitleAccess &&
             focusReader.needsAccessibilityPermission
-        let chromeNeeded = focusCoordinator.needsChromeAutomationPermission &&
-            focusReader.current.bundleIdentifier == "com.google.Chrome"
+        let chromeNeeded = focusCoordinator.needsChromeAutomationPermission
         return (accessibilityNeeded ? 1 : 0) + (chromeNeeded ? 1 : 0)
     }
 
