@@ -68,3 +68,8 @@ open "build/Keyflow Status.app"
 
 The compiled executable is `build/Keyflow Status.app/Contents/MacOS/KeyflowStatus`.
 Pass `--preview` when launching the app bundle to show the floating panel for visual inspection.
+
+## License
+
+Keyflow is released under the [MIT License](LICENSE). The bundled libusb library is licensed
+separately under the GNU LGPL 2.1; see [its notice](Vendor/NOTICE.md).
